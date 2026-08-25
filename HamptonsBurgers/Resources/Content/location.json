@@ -1,0 +1,19 @@
+{
+  "name": "Hamptons Burgers",
+  "addressLine1": "123 Main Street",
+  "addressLine2": "East Hampton, NY 11937",
+  "phone": "(555) 555-0100",
+  "coordinates": {
+    "latitude": 40.9631,
+    "longitude": -72.1848
+  },
+  "hours": [
+    { "day": "Monday", "hours": "11:00 AM – 9:00 PM" },
+    { "day": "Tuesday", "hours": "11:00 AM – 9:00 PM" },
+    { "day": "Wednesday", "hours": "11:00 AM – 9:00 PM" },
+    { "day": "Thursday", "hours": "11:00 AM – 9:00 PM" },
+    { "day": "Friday", "hours": "11:00 AM – 10:00 PM" },
+    { "day": "Saturday", "hours": "11:00 AM – 10:00 PM" },
+    { "day": "Sunday", "hours": "11:00 AM – 8:00 PM" }
+  ]
+}
