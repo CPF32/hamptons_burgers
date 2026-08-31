@@ -1,0 +1,39 @@
+{
+  "items": [
+    {
+      "id": "single-cheese",
+      "name": "Single Cheese Burger",
+      "price": 9.75,
+      "pointsCost": 100,
+      "category": "burgers"
+    },
+    {
+      "id": "double",
+      "name": "Double Burger",
+      "price": 16.50,
+      "pointsCost": 165,
+      "category": "burgers"
+    },
+    {
+      "id": "double-fries",
+      "name": "Double with Fries",
+      "price": 17.75,
+      "pointsCost": 180,
+      "category": "burgers"
+    },
+    {
+      "id": "soda-can",
+      "name": "Can of Soda",
+      "price": 3.00,
+      "pointsCost": 30,
+      "category": "drinks"
+    },
+    {
+      "id": "soda-bottle",
+      "name": "Bottle of Soda",
+      "price": 4.00,
+      "pointsCost": 40,
+      "category": "drinks"
+    }
+  ]
+}

@@ -1,66 +1,88 @@
 import SwiftUI
 
 struct OrderView: View {
+    @Environment(StoreStatusStore.self) private var store
+
     @State private var showOrdering = false
+    @State private var showMissingToastURL = false
+    @State private var showBlockedAlert = false
+    @State private var showAdminPIN = false
+    @State private var showAdminPanel = false
+
+    private var canOrder: Bool {
+        store.status.canPlaceOrder()
+    }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Theme.background.ignoresSafeArea()
+        BrandActionCard(onLogoTap: { showAdminPIN = true }) {
+            VStack(spacing: 12) {
+                orderTagline
 
-                VStack(spacing: 28) {
-                    Spacer(minLength: 24)
+                Spacer(minLength: 0)
 
-                    Image("Logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 160, maxHeight: 160)
-                        .accessibilityLabel("\(BrandConfig.appName) logo")
+                PattyFuelGaugeView(
+                    compact: true,
+                    count: store.status.pattyCount,
+                    capacity: store.status.pattyCapacity
+                )
 
-                    VStack(spacing: 10) {
-                        Text(BrandConfig.appName)
-                            .font(.system(size: 34, weight: .bold, design: .rounded))
-                            .foregroundStyle(Theme.text)
-                            .multilineTextAlignment(.center)
+                Spacer(minLength: 28)
 
-                        Text("Pickup orders through Toast. Browse the menu, pay in-app, and pick up when ready.")
-                            .font(.body)
-                            .foregroundStyle(Theme.mutedText)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 28)
+                Button {
+                    guard BrandConfig.isToastOrderingConfigured else {
+                        showMissingToastURL = true
+                        return
                     }
 
-                    VStack(spacing: 12) {
-                        Button {
-                            showOrdering = true
-                        } label: {
-                            Text("Order Pickup")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(Theme.primary)
-                                .foregroundStyle(Theme.surface)
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        }
-
-                        Text("Menu, checkout, and payment open in Toast Online Ordering.")
-                            .font(.footnote)
-                            .foregroundStyle(Theme.mutedText)
-                            .multilineTextAlignment(.center)
+                    if canOrder {
+                        showOrdering = true
+                    } else {
+                        showBlockedAlert = true
                     }
-                    .padding(.horizontal, 24)
-
-                    Spacer()
-                    Spacer()
+                } label: {
+                    Text("Order Pickup")
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.primaryAction(isEnabled: canOrder))
             }
-            .navigationTitle("Order")
-            .navigationBarTitleDisplayMode(.inline)
-            .toastSafari(isPresented: $showOrdering, url: BrandConfig.toastOrderingURL)
+            .frame(maxWidth: Theme.buttonMaxWidth, maxHeight: .infinity, alignment: .top)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .background(Theme.background.ignoresSafeArea())
+        .toastSafari(isPresented: $showOrdering, url: BrandConfig.toastOrderingURL)
+        .sheet(isPresented: $showAdminPIN) {
+            AdminPinView {
+                showAdminPanel = true
+            }
+        }
+        .sheet(isPresented: $showAdminPanel) {
+            AdminView()
+        }
+        .alert(store.status.orderBlockedTitle(), isPresented: $showBlockedAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(store.status.orderBlockedMessage())
+        }
+        .alert("Toast URL not set", isPresented: $showMissingToastURL) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Set BrandConfig.toastOrderingURL to your restaurant’s Toast Online Ordering link (from Toast Web → Takeout & delivery → Restaurant info), then rebuild.")
+        }
+    }
+
+    private var orderTagline: some View {
+        VStack(spacing: 2) {
+            ForEach(BrandConfig.orderTaglines, id: \.self) { line in
+                Text(line)
+            }
+        }
+        .font(.subheadline)
+        .foregroundStyle(Theme.mutedText)
+        .multilineTextAlignment(.center)
     }
 }
 
 #Preview {
     OrderView()
+        .environment(StoreStatusStore())
 }

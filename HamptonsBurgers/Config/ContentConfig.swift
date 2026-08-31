@@ -3,22 +3,23 @@ import CoreLocation
 
 struct LocationContent: Codable, Equatable {
     struct Coordinates: Codable, Equatable {
-        let latitude: Double
-        let longitude: Double
+        var latitude: Double
+        var longitude: Double
     }
 
     struct HoursEntry: Codable, Equatable, Identifiable {
         var id: String { day }
         let day: String
-        let hours: String
+        var hours: String
     }
 
-    let name: String
-    let addressLine1: String
-    let addressLine2: String
-    let phone: String
-    let coordinates: Coordinates
-    let hours: [HoursEntry]
+    var name: String
+    var addressLine1: String
+    var addressLine2: String
+    var phone: String
+    var email: String
+    var coordinates: Coordinates
+    var hours: [HoursEntry]
 
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: coordinates.latitude, longitude: coordinates.longitude)
@@ -40,19 +41,16 @@ struct LocationContent: Codable, Equatable {
 
 struct FAQItem: Codable, Equatable, Identifiable {
     let id: String
-    let question: String
-    let answer: String
+    var question: String
+    var answer: String
 }
 
 struct FAQContent: Codable, Equatable {
-    let items: [FAQItem]
+    var items: [FAQItem]
 }
 
 enum ContentConfig {
-    static let location: LocationContent = load("location", as: LocationContent.self)
-    static let faq: FAQContent = load("faq", as: FAQContent.self)
-
-    private static func load<T: Decodable>(_ name: String, as type: T.Type) -> T {
+    static func loadBundled<T: Decodable>(_ name: String, as type: T.Type) -> T {
         guard let url = Bundle.main.url(forResource: name, withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let decoded = try? JSONDecoder().decode(T.self, from: data) else {

@@ -1,32 +1,37 @@
 import SwiftUI
 
 struct FAQView: View {
-    private let items = ContentConfig.faq.items
+    @Environment(AppConfigStore.self) private var appConfig
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(items) { item in
-                    DisclosureGroup {
-                        Text(item.answer)
-                            .font(.body)
-                            .foregroundStyle(Theme.mutedText)
-                            .padding(.vertical, 4)
-                    } label: {
-                        Text(item.question)
-                            .font(.headline)
-                            .foregroundStyle(Theme.text)
+        ScrollView {
+            VStack(spacing: Theme.sectionGap) {
+                VStack(alignment: .leading, spacing: 12) {
+                    TabSectionHeader(title: "FAQ", systemImage: "questionmark.circle.fill")
+
+                    ForEach(appConfig.faq.items) { item in
+                        DisclosureGroup {
+                            Text(item.answer)
+                                .font(.body)
+                                .foregroundStyle(Theme.mutedText)
+                                .padding(.vertical, 4)
+                        } label: {
+                            Text(item.question)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Theme.text)
+                        }
+                        .tint(Theme.primary)
                     }
-                    .listRowBackground(Theme.surface)
                 }
+                .tabFirstSectionCard()
             }
-            .scrollContentBackground(.hidden)
-            .background(Theme.background.ignoresSafeArea())
-            .navigationTitle("FAQ")
+            .padding(.vertical, Theme.sectionGap)
         }
+        .background(Theme.background.ignoresSafeArea())
     }
 }
 
 #Preview {
     FAQView()
+        .environment(AppConfigStore())
 }

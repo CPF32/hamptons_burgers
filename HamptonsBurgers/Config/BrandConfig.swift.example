@@ -1,0 +1,91 @@
+import Foundation
+
+/// Central place to customize restaurant branding and Toast Online Ordering links.
+/// Copy this file to `BrandConfig.swift` and fill in real values (BrandConfig.swift is gitignored).
+enum BrandConfig {
+    static let appName = "Hamptons Burgers"
+
+    /// Toast Online Ordering public URL from Toast Web → Takeout & delivery → Restaurant info.
+    /// Example: https://www.toasttab.com/your-restaurant-slug
+    static let toastOrderingURL = URL(string: "https://www.toasttab.com/hamptons-burgers")!
+
+    /// True once `toastOrderingURL` is replaced with a real Toast public link.
+    static var isToastOrderingConfigured: Bool {
+        let url = toastOrderingURL.absoluteString.lowercased()
+        return !url.contains("your-restaurant-slug") && !url.contains("your-restaurant")
+    }
+
+    /// Toast guest sign-in / create-account page.
+    /// Guests authenticate on Toast (phone OTP or Create Account on the ordering site).
+    /// Defaults to the ordering URL if nil — use “Sign in” / “Create account” in the top-right of that page.
+    static let toastSignInURL: URL? = nil
+    static let toastSignUpURL: URL? = nil
+
+    static var resolvedSignInURL: URL { toastSignInURL ?? toastOrderingURL }
+    static var resolvedSignUpURL: URL { toastSignUpURL ?? toastOrderingURL }
+
+    static let supportPhone = "970-299-3150"
+    static let supportEmail = "hamptonsburgers@gmail.com"
+
+    /// Instagram handles shown on the Visit tab contact card.
+    static let instagramHandles = [
+        "hamptonsburgers"
+    ]
+
+    static func instagramURL(for handle: String) -> URL {
+        let username = handle.trimmingCharacters(in: CharacterSet(charactersIn: "@"))
+        return URL(string: "https://instagram.com/\(username)")!
+    }
+
+    // MARK: - Colors (hex without #)
+
+    /// Deep navy — primary buttons, app icon background, tab icons
+    static let primaryHex = "020455"
+    static let appIconBackgroundHex = "020455"
+    /// Logo navy — body text
+    static let navyHex = "193352"
+    /// App screen background
+    static let backgroundHex = "F7F1DD"
+    /// Cards, FAQ rows, order/sign-in container
+    static let surfaceHex = "FFFFFF"
+    static let textHex = "193352"
+    static let mutedTextHex = "6B6560"
+    static let onPrimaryHex = "F7F1DD"
+    static let secondaryHex = "C4A35A"
+
+    // MARK: - Admin + live store status (Firebase)
+
+    /// PIN for the hidden admin screen (tap the logo 5× on the Order tab).
+    static let adminPIN = "0824"
+
+    /// Firestore collection + document for live store status sync across devices.
+    static let firestoreCollection = "storeStatus"
+    static let firestoreDocumentID = "main"
+    static let firestoreRewardOrdersCollection = "rewardOrders"
+    static let firestoreAppConfigCollection = "appConfig"
+    static let firestoreAppConfigDocumentID = "main"
+    static let firestoreRewardsUsersCollection = "rewardsUsers"
+    static let firestorePointHistorySubcollection = "pointHistory"
+
+    /// Must match your Firestore security rules for admin writes.
+    static let firestoreAdminWriteSecret = "REPLACE-WITH-YOUR-ADMIN-WRITE-SECRET"
+
+    static let defaultPattyCapacity = 240  // weekly starting capacity for the fuel gauge
+
+    // MARK: - Rewards + in-store payment
+
+    /// Staff enters this code on a guest's phone to approve redemptions or credit points.
+    static let rewardsAdminCode = "HAMPTONS"
+
+    /// Earn 1 point per dollar spent; cents carry across purchases (e.g. $19.78 + $1.22 = 21 pts).
+    /// Redeem at 10% value (10 points = $1 off).
+    static let rewardsPointsPerDollar = 1
+    static let rewardsRedemptionRate = 0.10
+
+    /// Shown under the logo on the Order tab.
+    static let orderTaglines = [
+        "Locally Sourced.",
+        "Seed Oil Free.",
+        "Cooked in Beef Tallow."
+    ]
+}

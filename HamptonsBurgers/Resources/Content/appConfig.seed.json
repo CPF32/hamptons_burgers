@@ -1,0 +1,50 @@
+{
+  "configVersion": 1,
+  "location": {
+    "name": "Hamptons Burgers",
+    "addressLine1": "10654 US-6",
+    "addressLine2": "Gypsum, CO 81637",
+    "phone": "970-299-3150",
+    "email": "hamptonsburgers@gmail.com",
+    "coordinates": {
+      "latitude": 39.646019,
+      "longitude": -106.94208
+    },
+    "hours": [
+      { "day": "Sunday", "hours": "Closed" },
+      { "day": "Monday", "hours": "Closed" },
+      { "day": "Tuesday", "hours": "11:00 AM – 7:00 PM" },
+      { "day": "Wednesday", "hours": "11:00 AM – 7:00 PM" },
+      { "day": "Thursday", "hours": "11:00 AM – 7:00 PM" },
+      { "day": "Friday", "hours": "11:00 AM – 7:00 PM" },
+      { "day": "Saturday", "hours": "11:00 AM – 7:00 PM" }
+    ]
+  },
+  "faq": {
+    "items": [
+      {
+        "id": "pickup",
+        "question": "Is this pickup only?",
+        "answer": "Yes. Hamptons Burgers offers pickup orders only through the app. Place your order, then pick it up at the restaurant when it's ready."
+      },
+      {
+        "id": "allergies",
+        "question": "Can I note allergies or special requests?",
+        "answer": "Use the special instructions field in Toast checkout when available, and mention allergies clearly. For serious allergies, call the restaurant as well."
+      }
+    ]
+  },
+  "redemption": {
+    "items": [
+      {
+        "id": "single-cheese",
+        "name": "Single Cheese Burger",
+        "price": 9.75,
+        "pointsCost": 100,
+        "category": "burgers"
+      }
+    ]
+  },
+  "adminEmails": [],
+  "adminWriteSecret": "REPLACE-WITH-YOUR-ADMIN-WRITE-SECRET"
+}

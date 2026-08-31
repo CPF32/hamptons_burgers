@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>Hamptons Burgers</string>
+	<key>CFBundleName</key>
+	<string>Hamptons Burgers</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access is used to scan receipts for rewards points and to scan guest QR codes in the admin panel.</string>
+</dict>
+</plist>

@@ -23,3 +23,18 @@ playground.xcworkspace
 # CocoaPods / Carthage (unused, ignore if added later)
 Pods/
 Carthage/Build/
+
+# Firebase secrets (use the .example files as templates)
+Firebase/GoogleService-Info*.plist
+!Firebase/GoogleService-Info*.plist.example
+**/GoogleService-Info.plist
+**/GoogleService-Info-Dev.plist
+**/GoogleService-Info-Prod.plist
+
+# Local brand + secrets (copy from BrandConfig.swift.example)
+HamptonsBurgers/Config/BrandConfig.swift
+
+# Firebase CLI local cache
+.firebase/
+firebase-debug.log
+firestore-debug.log

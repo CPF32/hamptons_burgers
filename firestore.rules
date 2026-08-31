@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function adminSecret() {
+      return "NcKlEv20KpRu5ha7ercjvtIQFKTToVPAB38sR2XM";
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(emailId) {
+      return isSignedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == emailId;
+    }
+
+    match /storeStatus/{document} {
+      allow read: if true;
+      allow write: if request.resource.data.adminWriteSecret == adminSecret();
+    }
+
+    match /rewardOrders/{orderId} {
+      allow read: if true;
+      allow create: if request.resource.data.adminWriteSecret == adminSecret();
+      allow update, delete: if false;
+    }
+
+    match /appConfig/{document} {
+      allow read: if true;
+      allow write: if request.resource.data.adminWriteSecret == adminSecret();
+    }
+
+    match /rewardsUsers/{emailId} {
+      allow read: if true;
+      allow create: if isOwner(emailId)
+        && request.resource.data.email == emailId
+        && request.resource.data.memberId == request.auth.uid
+        && !exists(/databases/$(database)/documents/rewardsUsers/$(emailId));
+      allow update: if request.resource.data.adminWriteSecret == adminSecret()
+        || (isOwner(emailId)
+          && request.resource.data.email == emailId
+          && request.resource.data.memberId == request.auth.uid
+          && resource.data.memberId == request.auth.uid);
+
+      match /pointHistory/{entryId} {
+        allow read: if true;
+        allow create: if request.resource.data.adminWriteSecret == adminSecret();
+        allow update, delete: if false;
+      }
+    }
+  }
+}

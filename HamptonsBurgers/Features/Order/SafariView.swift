@@ -16,15 +16,29 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
 
+struct SafariURL: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 struct ToastSafariSheet: ViewModifier {
     @Binding var isPresented: Bool
     let url: URL
+    @State private var presentedURL: SafariURL?
 
     func body(content: Content) -> some View {
-        content.sheet(isPresented: $isPresented) {
-            SafariView(url: url)
-                .ignoresSafeArea()
-        }
+        content
+            .onChange(of: isPresented) { _, show in
+                if show {
+                    presentedURL = SafariURL(url: url)
+                } else if presentedURL != nil {
+                    presentedURL = nil
+                }
+            }
+            .sheet(item: $presentedURL, onDismiss: { isPresented = false }) { item in
+                SafariView(url: item.url)
+                    .ignoresSafeArea()
+            }
     }
 }
 

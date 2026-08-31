@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "hamptons-burgers",
+    "prod": "hamptons-burgers",
+    "dev": "hamptons-burgers-dev"
+  }
+}

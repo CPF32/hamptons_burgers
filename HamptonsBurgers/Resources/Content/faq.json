@@ -6,21 +6,6 @@
       "answer": "Yes. Hamptons Burgers offers pickup orders only through the app. Place your order, then pick it up at the restaurant when it’s ready."
     },
     {
-      "id": "payment",
-      "question": "How do I pay?",
-      "answer": "Checkout and payment happen securely in Toast Online Ordering. You can pay with a card (and Apple Pay when Toast offers it) during checkout."
-    },
-    {
-      "id": "history",
-      "question": "How do I see past orders or reorder?",
-      "answer": "Sign in with your Toast guest account when ordering. From there you can view order history and reorder previous meals."
-    },
-    {
-      "id": "ready",
-      "question": "How will I know when my order is ready?",
-      "answer": "Toast will show your estimated pickup time at checkout. Follow any confirmation emails or texts from Toast for updates."
-    },
-    {
       "id": "allergies",
       "question": "Can I note allergies or special requests?",
       "answer": "Use the special instructions field in Toast checkout when available, and mention allergies clearly. For serious allergies, call the restaurant as well."
