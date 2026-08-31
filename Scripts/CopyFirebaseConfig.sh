@@ -6,7 +6,8 @@ set -euo pipefail
 
 ENV_NAME="${FIREBASE_ENV:-Dev}"
 SRC="${SRCROOT}/Firebase/GoogleService-Info-${ENV_NAME}.plist"
-DEST_DIR="${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
+# TARGET_BUILD_DIR is correct for Archive (Install builds); BUILT_PRODUCTS_DIR alone can fail there.
+DEST_DIR="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
 DEST="${DEST_DIR}/GoogleService-Info.plist"
 
 mkdir -p "${DEST_DIR}"

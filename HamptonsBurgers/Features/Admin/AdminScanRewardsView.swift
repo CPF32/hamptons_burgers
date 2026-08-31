@@ -27,15 +27,18 @@ struct AdminScanRewardsView: View {
                 if showScanner {
                     QRCodeScannerView(
                         onScan: handleScan,
-                        onCancel: handleScannerCancel
+                        onCancel: presentation == .sheet ? handleScannerCancel : nil
                     )
                     .ignoresSafeArea()
                 } else if let payload = scannedPayload {
                     form(for: payload)
+                } else {
+                    unrecognizedQRView
                 }
             }
-            .navigationTitle(navigationTitle)
+            .navigationTitle(showScanner ? "" : navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(showScanner ? .hidden : .visible, for: .navigationBar)
             .toolbar {
                 if !showScanner {
                     ToolbarItem(placement: .cancellationAction) {
@@ -51,6 +54,34 @@ struct AdminScanRewardsView: View {
                 }
             }
         }
+    }
+
+    private var unrecognizedQRView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "qrcode.viewfinder")
+                .font(.system(size: 48))
+                .foregroundStyle(Theme.mutedText)
+
+            Text("Unrecognized QR code")
+                .font(.headline)
+                .foregroundStyle(Theme.text)
+
+            if let statusMessage {
+                Text(statusMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.mutedText)
+                    .multilineTextAlignment(.center)
+            }
+
+            Button("Scan again") {
+                resetForNewScan()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Theme.primary)
+        }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.background.ignoresSafeArea())
     }
 
     private func handleScannerCancel() {
@@ -129,7 +160,8 @@ struct AdminScanRewardsView: View {
 
     private func handleScan(_ raw: String) {
         guard let payload = RewardsQRCode.parse(raw) else {
-            statusMessage = "Unrecognized QR code."
+            scannedPayload = nil
+            statusMessage = "This QR code is not a Hamptons rewards code."
             showScanner = false
             return
         }

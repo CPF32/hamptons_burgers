@@ -22,6 +22,7 @@ struct ContentView: View {
     var body: some View {
         mainTabs
             .background(Theme.background.ignoresSafeArea())
+            .dismissKeyboardOnTap()
     }
 
     private var mainTabs: some View {
