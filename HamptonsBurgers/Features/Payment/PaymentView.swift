@@ -97,7 +97,7 @@ struct PaymentView: View {
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .font(.title3)
-                        .foregroundStyle(quantity > 0 ? Theme.primary : Theme.mutedText.opacity(0.4))
+                        .foregroundStyle(quantity > 0 ? Theme.secondary : Theme.mutedText.opacity(0.4))
                 }
                 .buttonStyle(.plain)
                 .disabled(quantity == 0)
@@ -112,7 +112,7 @@ struct PaymentView: View {
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
-                        .foregroundStyle(Theme.secondary)
+                        .foregroundStyle(Theme.primary)
                 }
                 .buttonStyle(.plain)
             }
