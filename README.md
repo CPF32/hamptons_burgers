@@ -124,6 +124,20 @@ The hidden admin panel shows the active **Environment** and **Project** ID so yo
 | Firestore security rules | [`firestore.rules`](firestore.rules) |
 | Firebase project aliases | [`.firebaserc`](.firebaserc) |
 
+### Xcode Cloud
+
+`BrandConfig.swift` and `Firebase/GoogleService-Info-*.plist` are gitignored. Xcode Cloud runs [`ci_scripts/ci_post_clone.sh`](ci_scripts/ci_post_clone.sh) after clone to copy the `.example` templates so the project compiles.
+
+For **production** Cloud builds (TestFlight / App Store), add these **workflow environment variables** in App Store Connect → Xcode Cloud → your workflow → **Environment**:
+
+| Variable | Value |
+|----------|--------|
+| `FIRESTORE_ADMIN_WRITE_SECRET` | Same string as `BrandConfig.firestoreAdminWriteSecret` |
+| `GOOGLE_SERVICE_INFO_PROD` | Base64 of your prod plist: `base64 -i Firebase/GoogleService-Info-Prod.plist \| pbcopy` |
+| `GOOGLE_SERVICE_INFO_DEV` | Optional; same for dev plist |
+
+Without the prod plist variable, Cloud builds compile but Firebase will not work at runtime.
+
 ## Project layout
 
 ```
