@@ -8,6 +8,8 @@ struct EarnPointsView: View {
     @State private var showCamera = false
     @State private var isScanning = false
     @State private var scanError: String?
+    @State private var showAmountPicker = false
+    @State private var amountCandidates: [ReceiptAmountCandidate] = []
 
     private var subtotal: Double? {
         guard let value = Double(subtotalText), value > 0 else { return nil }
@@ -66,6 +68,15 @@ struct EarnPointsView: View {
                             .padding()
                             .background(Theme.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                        if !amountCandidates.isEmpty {
+                            Button("Not right? Pick another amount") {
+                                showAmountPicker = true
+                            }
+                            .font(.footnote)
+                            .foregroundStyle(Theme.primary)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                        }
                     }
 
                     if let scanError {
@@ -112,6 +123,17 @@ struct EarnPointsView: View {
                 )
                 .ignoresSafeArea()
             }
+            .sheet(isPresented: $showAmountPicker) {
+                ReceiptAmountPickerView(
+                    candidates: amountCandidates,
+                    onSelect: { amount in
+                        subtotalText = formatted(amount)
+                        scanError = nil
+                        showAmountPicker = false
+                    },
+                    onCancel: { showAmountPicker = false }
+                )
+            }
         }
     }
 
@@ -125,12 +147,18 @@ struct EarnPointsView: View {
         defer { isScanning = false }
 
         do {
-            if let detected = try await ReceiptTextRecognizer.parseSubtotal(from: image) {
+            let result = try await ReceiptTextRecognizer.analyzeReceipt(from: image)
+            amountCandidates = result.candidates
+
+            if let detected = result.subtotal {
                 subtotalText = formatted(detected)
+            } else if !result.candidates.isEmpty {
+                showAmountPicker = true
             } else {
-                scanError = "Couldn't find a subtotal on this receipt. Enter the amount manually."
+                scanError = "Couldn't read any amounts on this receipt. Enter the subtotal manually."
             }
         } catch {
+            amountCandidates = []
             scanError = "Couldn't read the receipt. Enter the amount manually."
         }
     }

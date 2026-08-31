@@ -49,8 +49,12 @@ enum ReceiptTextRecognizer {
     }
 
     static func parseSubtotal(from image: UIImage) async throws -> Double? {
+        try await analyzeReceipt(from: image).subtotal
+    }
+
+    static func analyzeReceipt(from image: UIImage) async throws -> ReceiptScanResult {
         let lines = try await recognizeLines(in: image)
-        return ReceiptSubtotalParser.parseSubtotal(from: lines)
+        return ReceiptSubtotalParser.analyze(lines: lines)
     }
 
     private static func containsReceiptKeyword(_ line: String) -> Bool {
