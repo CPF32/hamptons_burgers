@@ -76,8 +76,8 @@
 			buildPhases = (
 				A10000000000000000000060 /* Sources */,
 				A10000000000000000000020 /* Frameworks */,
-				A10000000000000000000065 /* Copy Firebase Config */,
 				A10000000000000000000070 /* Resources */,
+				A10000000000000000000065 /* Copy Firebase Config */,
 			);
 			buildRules = (
 			);
@@ -148,22 +148,21 @@
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
+			enableUserScriptSandboxing = 0;
 			files = (
 			);
 			inputFileListPaths = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/Firebase/GoogleService-Info-$(FIREBASE_ENV).plist",
 			);
 			name = "Copy Firebase Config";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nENV_NAME=\"${FIREBASE_ENV:-Dev}\"\nSRC=\"${SRCROOT}/Firebase/GoogleService-Info-${ENV_NAME}.plist\"\nDEST_DIR=\"${BUILT_PRODUCTS_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nDEST=\"${DEST_DIR}/GoogleService-Info.plist\"\nmkdir -p \"${DEST_DIR}\"\nif [ ! -f \"${SRC}\" ]; then\n  echo \"warning: Missing Firebase config at ${SRC}\"\n  echo \"warning: App will run without Firebase until GoogleService-Info-${ENV_NAME}.plist is added under Firebase/.\"\n  rm -f \"${DEST}\"\n  exit 0\nfi\ncp \"${SRC}\" \"${DEST}\"\necho \"Firebase: using ${ENV_NAME} → ${DEST}\"\n";
+			shellScript = "set -eo pipefail\nENV_NAME=\"${FIREBASE_ENV:-Dev}\"\nSRC=\"${SRCROOT}/Firebase/GoogleService-Info-${ENV_NAME}.plist\"\nif [ ! -f \"${SRC}\" ]; then\n  echo \"warning: Missing Firebase config at ${SRC}\"\n  exit 0\nfi\nfor DEST_ROOT in \"${TARGET_BUILD_DIR}\" \"${BUILT_PRODUCTS_DIR}\"; do\n  [ -n \"${DEST_ROOT}\" ] || continue\n  DEST_DIR=\"${DEST_ROOT}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n  DEST=\"${DEST_DIR}/GoogleService-Info.plist\"\n  if mkdir -p \"${DEST_DIR}\" 2>/dev/null; then\n    cp \"${SRC}\" \"${DEST}\"\n    echo \"Firebase: using ${ENV_NAME} → ${DEST}\"\n    exit 0\n  fi\ndone\necho \"error: Failed to copy GoogleService-Info.plist into app bundle\"\nexit 1\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -215,7 +214,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -278,7 +277,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -304,8 +303,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = UV23JAL4TD;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FIREBASE_ENV = Dev;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HamptonsBurgers/Info.plist;
@@ -338,8 +338,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = UV23JAL4TD;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				FIREBASE_ENV = Prod;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HamptonsBurgers/Info.plist;
