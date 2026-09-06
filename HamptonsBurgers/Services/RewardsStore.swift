@@ -108,6 +108,52 @@ final class RewardsStore {
         persistCart()
     }
 
+    /// Local-only account + history for App Store screenshot captures.
+    @MainActor
+    func applyScreenshotDemo() {
+        stopListeners()
+        account = RewardsAccount(
+            memberId: "screenshot-demo-user",
+            email: "guest@hamptonsburgers.com",
+            firstName: "Alex",
+            lastName: "Rivera",
+            phone: "(970) 555-0142",
+            birthday: nil,
+            marketingOptIn: true,
+            points: 185,
+            lifetimeSpend: 214.5
+        )
+        pointsHistory = [
+            PointsHistoryEntry(
+                id: "demo-earn-1",
+                delta: 42,
+                pointsAfter: 185,
+                description: "In-store purchase",
+                createdAt: Date().addingTimeInterval(-86_400 * 2),
+                type: "earn"
+            ),
+            PointsHistoryEntry(
+                id: "demo-redeem-1",
+                delta: -30,
+                pointsAfter: 143,
+                description: "Redeemed Can of Soda",
+                createdAt: Date().addingTimeInterval(-86_400 * 5),
+                type: "redeem"
+            ),
+            PointsHistoryEntry(
+                id: "demo-earn-2",
+                delta: 38,
+                pointsAfter: 173,
+                description: "In-store purchase",
+                createdAt: Date().addingTimeInterval(-86_400 * 9),
+                type: "earn"
+            )
+        ]
+        redemptionCart = ["soda-can": 1]
+        lastSyncError = nil
+        // Avoid writing demo state into the simulator's persisted guest account.
+    }
+
     private func stopListeners() {
         userListener = nil
         historyListener = nil

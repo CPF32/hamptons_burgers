@@ -1,6 +1,7 @@
 # Xcode
 DerivedData/
 .screenshot-derived-data/
+Scripts/.venv-screenshots/
 build/
 *.xcuserstate
 *.xcuserdata/

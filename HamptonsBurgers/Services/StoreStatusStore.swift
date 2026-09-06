@@ -26,6 +26,24 @@ final class StoreStatusStore {
         }
     }
 
+    /// Clean open-store state for App Store screenshot captures.
+    @MainActor
+    func applyScreenshotDemo() {
+        status = StoreStatus(
+            isOffDay: false,
+            isSoldOut: false,
+            pattyCount: 168,
+            pattyCapacity: BrandConfig.defaultPattyCapacity,
+            noticeTitle: "",
+            noticeBody: "",
+            orderClosedMessage: "",
+            updatedAt: Date()
+        )
+        dismissedStatusBannerToken = status.statusBannerToken
+        dismissedCustomerNoticeToken = status.customerNoticeToken
+        lastSyncError = nil
+    }
+
     func verifyAdminPIN(_ pin: String) -> Bool {
         pin == BrandConfig.adminPIN
     }

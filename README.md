@@ -159,6 +159,22 @@ Firebase/              # GoogleService-Info-Dev/Prod.plist (gitignored)
 Scripts/               # CopyFirebaseConfig.sh (Debug→Dev, Release→Prod)
 ```
 
+## App Store screenshots
+
+Raw simulator captures and connected marketing frames live under `AppStoreScreenshots/`.
+
+```bash
+./Scripts/capture_app_store_screenshots.sh              # build + capture + compose
+./Scripts/capture_app_store_screenshots.sh --compose-only  # reframe existing raw PNGs
+./Scripts/capture_app_store_screenshots.sh --raw-only      # capture only
+```
+
+- **Raw:** `AppStoreScreenshots/6.7-inch/` (1284×2778)
+- **Marketing:** `AppStoreScreenshots/marketing/6.7-inch/` — device frames, brand cream/navy/gold, and a gold ribbon that continues across the five-slide story (`Real food.` → `Then earn.` → `Come visit.` → `Ask away.` → `Make it yours.`)
+- **Preview strip:** `AppStoreScreenshots/marketing/6.7-inch/_series-preview.png`
+
+Launch args used for deterministic shots: `-ScreenshotTab <tab>` and `-ScreenshotDemo` (seeded points, signed-in profile, open store — no Firebase). Edit copy and layout in `Scripts/compose_marketing_screenshots.py`.
+
 ## Out of scope (v1)
 
 - Custom Toast partner Orders / Credit Cards API

@@ -28,6 +28,14 @@ final class AuthStore {
         #endif
     }
 
+    /// Local-only signed-in state for App Store screenshot captures.
+    @MainActor
+    func applyScreenshotDemo() {
+        isSignedIn = true
+        userEmail = "guest@hamptonsburgers.com"
+        userID = "screenshot-demo-user"
+    }
+
     @MainActor
     func signIn(email: String, password: String) async throws {
         #if canImport(FirebaseAuth)
