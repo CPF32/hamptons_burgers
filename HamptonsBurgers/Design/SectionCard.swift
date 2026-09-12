@@ -40,7 +40,7 @@ private struct SectionCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(20)
-            .frame(maxWidth: 360)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: Theme.primary.opacity(0.06), radius: 8, y: 3)

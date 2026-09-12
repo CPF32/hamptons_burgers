@@ -1,12 +1,16 @@
 import SwiftUI
+import UIKit
 
 struct PaymentView: View {
     @Environment(RewardsStore.self) private var rewards
     @Environment(AppConfigStore.self) private var appConfig
     @Environment(AuthStore.self) private var auth
+    @Environment(\.sizeCategory) private var sizeCategory
 
     @State private var showRedemptionCheckout = false
     @State private var showEarnPoints = false
+    @State private var nameColumnWidth: CGFloat = 0
+    @State private var sharedNameFontSize: CGFloat = UIFont.preferredFont(forTextStyle: .subheadline).pointSize
 
     private var redemptionItems: [RedemptionItem] {
         appConfig.redemption.items
@@ -37,6 +41,15 @@ struct PaymentView: View {
         }
         .sheet(isPresented: $showEarnPoints) {
             EarnPointsView()
+        }
+        .onChange(of: nameColumnWidth) { _, _ in
+            updateSharedNameFontSize()
+        }
+        .onChange(of: redemptionItems.map(\.id)) { _, _ in
+            updateSharedNameFontSize()
+        }
+        .onChange(of: sizeCategory) { _, _ in
+            updateSharedNameFontSize()
         }
     }
 
@@ -73,25 +86,40 @@ struct PaymentView: View {
                 redemptionRow(item)
             }
         }
+        .onPreferenceChange(RedemptionNameColumnWidthKey.self) { width in
+            if abs(width - nameColumnWidth) > 0.5 {
+                nameColumnWidth = width
+            }
+        }
         .sectionCard()
     }
 
     private func redemptionRow(_ item: RedemptionItem) -> some View {
         let quantity = rewards.quantityInCart(for: item.id)
 
-        return HStack(alignment: .bottom, spacing: 12) {
+        return HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.system(size: sharedNameFontSize, weight: .semibold))
                     .foregroundStyle(Theme.text)
+                    .lineLimit(1)
+
                 Text("\(item.pointsCost) pts each")
                     .font(.caption)
                     .foregroundStyle(Theme.mutedText)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(
+                        key: RedemptionNameColumnWidthKey.self,
+                        value: proxy.size.width
+                    )
+                }
             }
 
-            Spacer()
-
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 Button {
                     rewards.removeFromCart(item)
                 } label: {
@@ -105,7 +133,7 @@ struct PaymentView: View {
                 Text("\(quantity)")
                     .font(.subheadline.weight(.semibold).monospacedDigit())
                     .foregroundStyle(Theme.text)
-                    .frame(minWidth: 20)
+                    .frame(minWidth: 18)
 
                 Button {
                     rewards.addToCart(item)
@@ -116,11 +144,33 @@ struct PaymentView: View {
                 }
                 .buttonStyle(.plain)
             }
+            .fixedSize(horizontal: true, vertical: false)
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 12)
         .background(Theme.background.opacity(0.6))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func updateSharedNameFontSize() {
+        let base = UIFont.preferredFont(forTextStyle: .subheadline).pointSize
+        guard nameColumnWidth > 0, !redemptionItems.isEmpty else {
+            sharedNameFontSize = base
+            return
+        }
+
+        let baseFont = UIFont.systemFont(ofSize: base, weight: .semibold)
+        let longestNameWidth = redemptionItems
+            .map { ($0.name as NSString).size(withAttributes: [.font: baseFont]).width }
+            .max() ?? 0
+
+        guard longestNameWidth > 0 else {
+            sharedNameFontSize = base
+            return
+        }
+
+        let scale = min(1, nameColumnWidth / longestNameWidth)
+        sharedNameFontSize = max(base * 0.75, (base * scale * 10).rounded(.down) / 10)
     }
 
     private var cartBar: some View {
@@ -173,6 +223,14 @@ struct PaymentView: View {
             }
         }
         .sectionCard()
+    }
+}
+
+private struct RedemptionNameColumnWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
