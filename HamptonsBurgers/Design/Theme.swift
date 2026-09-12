@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum Theme {
-    static let buttonMaxWidth: CGFloat = 260
+    static let buttonMaxWidth: CGFloat = 280
     /// Fixed height for content below the logo — Order and Account cards match.
     static let actionCardActionsHeight: CGFloat = 228
     static let authFieldHeight: CGFloat = 36
