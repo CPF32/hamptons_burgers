@@ -22,26 +22,30 @@ struct OrderView: View {
                 atmosphere
 
                 VStack(spacing: 0) {
-                    Spacer(minLength: metrics.topBreathingRoom)
+                    Spacer(minLength: metrics.edgeBreathingRoom)
 
-                    brandBlock(logoSize: metrics.logoSize)
+                    VStack(spacing: metrics.stackSpacing) {
+                        brandBlock(logoSize: metrics.logoSize)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 8)
+
+                        PattyFuelGaugeView(
+                            compact: false,
+                            count: store.status.pattyCount,
+                            capacity: store.status.pattyCapacity,
+                            canOrder: canOrder,
+                            onOrder: handleOrderTap
+                        )
+                        .frame(maxWidth: metrics.contentWidth)
                         .opacity(appeared ? 1 : 0)
                         .offset(y: appeared ? 0 : 10)
+                        .animation(
+                            .spring(response: 0.55, dampingFraction: 0.88).delay(0.06),
+                            value: appeared
+                        )
+                    }
 
-                    Spacer(minLength: metrics.midBreathingRoom)
-
-                    PattyFuelGaugeView(
-                        compact: false,
-                        count: store.status.pattyCount,
-                        capacity: store.status.pattyCapacity,
-                        canOrder: canOrder,
-                        onOrder: handleOrderTap
-                    )
-                    .frame(maxWidth: metrics.contentWidth)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 12)
-
-                    Spacer(minLength: metrics.bottomBreathingRoom)
+                    Spacer(minLength: metrics.edgeBreathingRoom)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, metrics.horizontalPadding)
@@ -69,7 +73,7 @@ struct OrderView: View {
             Text("Set BrandConfig.toastOrderingURL to your restaurant’s Toast Online Ordering link (from Toast Web → Takeout & delivery → Restaurant info), then rebuild.")
         }
         .onAppear {
-            withAnimation(.spring(response: 0.55, dampingFraction: 0.86)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
                 appeared = true
             }
         }
@@ -89,43 +93,25 @@ struct OrderView: View {
     }
 
     private var atmosphere: some View {
-        ZStack {
-            Theme.background
-
-            RadialGradient(
-                colors: [
-                    Theme.secondary.opacity(0.16),
-                    Theme.secondary.opacity(0.05),
-                    .clear
-                ],
-                center: .top,
-                startRadius: 20,
-                endRadius: 320
-            )
-            .offset(y: -40)
-
-            RadialGradient(
-                colors: [
-                    Theme.primary.opacity(0.06),
-                    .clear
-                ],
-                center: .bottom,
-                startRadius: 40,
-                endRadius: 280
-            )
-            .offset(y: 80)
-        }
+        LinearGradient(
+            colors: [
+                Theme.background,
+                Theme.secondary.opacity(0.07),
+                Theme.background
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
         .ignoresSafeArea()
         .allowsHitTesting(false)
     }
 
     private func brandBlock(logoSize: CGFloat) -> some View {
-        VStack(spacing: metricsSpacing(for: logoSize)) {
+        VStack(spacing: 18) {
             Image("Logo")
                 .resizable()
                 .scaledToFit()
                 .frame(width: logoSize, height: logoSize)
-                .shadow(color: Theme.primary.opacity(0.10), radius: 20, y: 8)
                 .accessibilityLabel("\(BrandConfig.appName) logo")
                 .adminLogoTapToUnlock(onUnlock: { showAdminPIN = true })
 
@@ -133,28 +119,18 @@ struct OrderView: View {
         }
     }
 
-    private func metricsSpacing(for logoSize: CGFloat) -> CGFloat {
-        logoSize < 150 ? 12 : 16
-    }
-
+    /// Single-line brand lockup — scales down slightly on narrow phones so nothing clips.
     private var orderTagline: some View {
-        VStack(spacing: 7) {
-            ForEach(Array(BrandConfig.orderTaglines.enumerated()), id: \.element) { index, line in
-                Text(line)
-                    .font(.subheadline.weight(.medium))
-                    .tracking(0.4)
-                    .foregroundStyle(Theme.text.opacity(0.78))
-                    .minimumScaleFactor(0.9)
-                    .lineLimit(1)
-
-                if index < BrandConfig.orderTaglines.count - 1 {
-                    Capsule()
-                        .fill(Theme.secondary.opacity(0.55))
-                        .frame(width: 18, height: 2)
-                }
-            }
-        }
-        .multilineTextAlignment(.center)
+        Text(BrandConfig.orderTaglines.joined(separator: " · "))
+            .font(.caption2.weight(.semibold))
+            .tracking(0.6)
+            .textCase(.uppercase)
+            .foregroundStyle(Theme.text.opacity(0.62))
+            .multilineTextAlignment(.center)
+            .lineLimit(1)
+            .minimumScaleFactor(0.65)
+            .allowsTightening(true)
+            .padding(.horizontal, 2)
     }
 }
 
@@ -163,37 +139,32 @@ private struct OrderLayoutMetrics {
     let size: CGSize
 
     var horizontalPadding: CGFloat {
-        size.width < 360 ? 20 : 28
+        size.width < 360 ? 20 : 24
     }
 
     var contentWidth: CGFloat {
-        min(340, size.width - (horizontalPadding * 2))
+        min(360, size.width - (horizontalPadding * 2))
     }
 
     var logoSize: CGFloat {
-        // Short phones (SE / mini landscape-ish heights) shrink first.
         if size.height < 700 {
-            return 132
+            return 148
         }
         if size.height < 780 {
-            return 156
+            return 168
         }
         if size.height < 900 {
-            return 176
+            return 186
         }
-        return 188
+        return 198
     }
 
-    var topBreathingRoom: CGFloat {
-        size.height < 700 ? 12 : 20
+    var stackSpacing: CGFloat {
+        size.height < 700 ? 28 : 36
     }
 
-    var midBreathingRoom: CGFloat {
-        size.height < 700 ? 16 : 24
-    }
-
-    var bottomBreathingRoom: CGFloat {
-        size.height < 700 ? 12 : 20
+    var edgeBreathingRoom: CGFloat {
+        size.height < 700 ? 20 : 28
     }
 }
 

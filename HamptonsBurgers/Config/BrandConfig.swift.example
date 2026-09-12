@@ -84,8 +84,8 @@ enum BrandConfig {
 
     /// Shown under the logo on the Order tab.
     static let orderTaglines = [
-        "Locally Sourced.",
-        "Seed Oil Free.",
-        "Cooked in Beef Tallow."
+        "Locally Sourced",
+        "Seed Oil Free",
+        "Cooked in Beef Tallow"
     ]
 }

@@ -31,6 +31,7 @@ private struct AccountAuthView: View {
     @State private var confirmPassword = ""
     @State private var isSubmitting = false
     @State private var errorMessage: String?
+    @State private var appeared = false
 
     enum AuthMode {
         case signIn
@@ -38,9 +39,78 @@ private struct AccountAuthView: View {
     }
 
     var body: some View {
-        BrandActionCard {
-            VStack(spacing: 12) {
-                VStack(spacing: 6) {
+        GeometryReader { geo in
+            let metrics = AccountAuthLayoutMetrics(size: geo.size)
+
+            ZStack {
+                atmosphere
+
+                VStack(spacing: 0) {
+                    Spacer(minLength: metrics.edgeBreathingRoom)
+
+                    authCard(logoSize: metrics.logoSize)
+                        .frame(maxWidth: metrics.contentWidth)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 10)
+
+                    Spacer(minLength: metrics.edgeBreathingRoom)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, metrics.horizontalPadding)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                appeared = true
+            }
+        }
+    }
+
+    private var atmosphere: some View {
+        LinearGradient(
+            colors: [
+                Theme.background,
+                Theme.secondary.opacity(0.07),
+                Theme.background
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+    }
+
+    private func authCard(logoSize: CGFloat) -> some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 14) {
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: logoSize, height: logoSize)
+                    .accessibilityLabel("\(BrandConfig.appName) logo")
+
+                Text(BrandConfig.orderTaglines.joined(separator: " · "))
+                    .font(.caption2.weight(.semibold))
+                    .tracking(0.6)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.text.opacity(0.62))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
+                    .allowsTightening(true)
+                    .padding(.horizontal, 2)
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text(mode == .signIn ? "Sign in" : "Create account")
+                    .font(.caption.weight(.bold))
+                    .tracking(1.0)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.mutedText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(spacing: 8) {
                     authField {
                         TextField("Email", text: $email)
                             .keyboardType(.emailAddress)
@@ -54,6 +124,7 @@ private struct AccountAuthView: View {
                             .textContentType(mode == .signUp ? .newPassword : .password)
                     }
 
+                    // Always reserve this row so sign-in / sign-up cards stay the same height.
                     Group {
                         if mode == .signUp {
                             authField {
@@ -65,53 +136,67 @@ private struct AccountAuthView: View {
                                 .accessibilityHidden(true)
                         }
                     }
-                    .frame(height: Theme.authFieldHeight)
+                    .frame(height: 44)
+                }
 
+                VStack(spacing: 6) {
                     Text(errorMessage ?? " ")
                         .font(.caption2)
-                        .foregroundStyle(errorMessage == nil ? .clear : .red)
+                        .foregroundStyle(errorMessage == nil ? .clear : Color(hex: "C44B3C"))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .frame(height: 14)
+                        .frame(height: 12, alignment: .center)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
 
                     Button {
-                        if mode == .signIn {
-                            mode = .signUp
-                        } else {
-                            mode = .signIn
-                            confirmPassword = ""
-                        }
-                        errorMessage = nil
+                        Task { await submit() }
                     } label: {
-                        Text(mode == .signIn ? "Don't have an account? Sign up" : "Already have an account? Sign in")
-                            .font(.caption)
-                            .foregroundStyle(Theme.primary)
+                        Text(submitTitle)
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.primaryAction(isEnabled: canSubmit && !isSubmitting, fillsWidth: true))
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
                 Button {
-                    Task { await submit() }
+                    if mode == .signIn {
+                        mode = .signUp
+                    } else {
+                        mode = .signIn
+                        confirmPassword = ""
+                    }
+                    errorMessage = nil
                 } label: {
-                    Text(submitTitle)
+                    Text(mode == .signIn ? "Don't have an account? Sign up" : "Already have an account? Sign in")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(Theme.primary)
                         .frame(maxWidth: .infinity)
+                        .frame(height: 18)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                 }
-                .buttonStyle(.primaryAction(isEnabled: canSubmit && !isSubmitting))
+                .buttonStyle(.plain)
             }
-            .frame(maxWidth: Theme.buttonMaxWidth, maxHeight: .infinity, alignment: .top)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.horizontal, 20)
+        .padding(.top, 22)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Theme.surface)
+                .shadow(color: Theme.primary.opacity(0.05), radius: 10, y: 3)
+        )
     }
 
     private func authField<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .font(.subheadline)
+            .foregroundStyle(Theme.text)
             .frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
-            .padding(.horizontal, 10)
-            .frame(height: Theme.authFieldHeight)
-            .background(Theme.background.opacity(0.6))
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .background(Theme.background.opacity(0.72))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var submitTitle: String {
@@ -153,6 +238,36 @@ private struct AccountAuthView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+private struct AccountAuthLayoutMetrics {
+    let size: CGSize
+
+    var horizontalPadding: CGFloat {
+        size.width < 360 ? 20 : 24
+    }
+
+    var contentWidth: CGFloat {
+        min(360, size.width - (horizontalPadding * 2))
+    }
+
+    /// Match Order tab logo sizing. Slightly reduced on short phones so card + form fit.
+    var logoSize: CGFloat {
+        if size.height < 700 {
+            return 128
+        }
+        if size.height < 780 {
+            return 148
+        }
+        if size.height < 900 {
+            return 168
+        }
+        return 180
+    }
+
+    var edgeBreathingRoom: CGFloat {
+        size.height < 700 ? 16 : 24
     }
 }
 

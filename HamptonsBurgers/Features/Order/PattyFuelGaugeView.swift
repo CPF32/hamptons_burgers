@@ -12,15 +12,6 @@ struct PattyFuelGaugeView: View {
         return min(1, max(0, Double(count) / Double(capacity)))
     }
 
-    private var gaugeColor: Color {
-        switch level {
-        case 0: return .red
-        case ..<0.25: return .orange
-        case ..<0.5: return Color(hex: "E0B84A")
-        default: return Color(hex: "3FAE6A")
-        }
-    }
-
     private var showsOrderAction: Bool {
         onOrder != nil && !compact
     }
@@ -30,128 +21,153 @@ struct PattyFuelGaugeView: View {
             if showsOrderAction {
                 panelContent
                     .padding(.horizontal, 20)
-                    .padding(.top, 18)
-                    .padding(.bottom, 16)
+                    .padding(.vertical, 20)
                     .frame(maxWidth: .infinity)
                     .background(panelBackground)
             } else {
-                gaugeContent
+                compactContent
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilitySummary)
     }
 
     private var panelContent: some View {
-        VStack(spacing: 16) {
-            gaugeContent
+        VStack(spacing: 20) {
+            inventoryReadout
 
             if let onOrder {
                 Button(action: onOrder) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         Text("Order Pickup")
                         Image(systemName: "arrow.up.right")
-                            .font(.subheadline.weight(.bold))
+                            .font(.footnote.weight(.bold))
                     }
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.primaryAction(isEnabled: canOrder, fillsWidth: true))
-                .shadow(
-                    color: Theme.primary.opacity(canOrder ? 0.18 : 0),
-                    radius: 12,
-                    y: 6
-                )
             }
         }
     }
 
-    private var gaugeContent: some View {
-        VStack(alignment: .leading, spacing: compact ? 8 : 12) {
+    /// Editorial inventory board — remaining count first; capacity only drives the bar.
+    private var inventoryReadout: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Weekly inventory")
+                .font(.caption.weight(.bold))
+                .tracking(1.0)
+                .textCase(.uppercase)
+                .foregroundStyle(Theme.mutedText)
+
+            HStack(alignment: .lastTextBaseline, spacing: 0) {
+                Text("\(count)")
+                    .font(.system(size: 48, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Theme.primary)
+                    .contentTransition(.numericText())
+                    .monospacedDigit()
+
+                Text(" remaining")
+                    .font(.title3.weight(.regular))
+                    .foregroundStyle(Theme.text.opacity(0.72))
+
+                Spacer(minLength: 0)
+            }
+
+            progressTrack
+
+            Text(statusLine)
+                .font(.caption)
+                .foregroundStyle(Theme.mutedText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var progressTrack: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Theme.primary.opacity(0.08))
+
+                Capsule()
+                    .fill(Theme.primary.opacity(count <= 0 ? 0.25 : 0.85))
+                    .frame(width: max(count > 0 ? 8 : 0, proxy.size.width * level))
+            }
+        }
+        .frame(height: 4)
+        .animation(.easeInOut(duration: 0.4), value: level)
+    }
+
+    private var compactContent: some View {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Patties left")
-                        .font(compact ? .caption.weight(.semibold) : .subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.text)
-                    if !compact {
-                        Text("This week’s smash inventory")
-                            .font(.caption2)
-                            .foregroundStyle(Theme.mutedText)
-                    }
-                }
-
+                Text("Patties left")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.text)
                 Spacer(minLength: 8)
-
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text("\(count)")
-                        .font(compact ? .title3.weight(.bold) : .title.weight(.bold))
-                        .foregroundStyle(Theme.primary)
-                        .contentTransition(.numericText())
-                        .monospacedDigit()
-                    if !compact, capacity > 0 {
-                        Text("/ \(capacity)")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(Theme.mutedText)
-                            .monospacedDigit()
-                    }
-                }
+                Text("\(count)")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(Theme.primary)
+                    .monospacedDigit()
             }
-
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Theme.primary.opacity(0.08))
-
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    gaugeColor.opacity(0.75),
-                                    gaugeColor
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(width: max(compact ? 14 : 20, proxy.size.width * level))
-                        .shadow(color: gaugeColor.opacity(0.35), radius: 6, y: 0)
-                }
-            }
-            .frame(height: compact ? 10 : 14)
-
-            if !compact {
-                Text(gaugeCaption)
-                    .font(.caption)
-                    .foregroundStyle(Theme.mutedText)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            progressTrack
+                .frame(height: 3)
         }
     }
 
-    private var panelBackground: some View {
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(Theme.surface.opacity(0.78))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Theme.primary.opacity(0.06), lineWidth: 1)
-            )
-            .shadow(color: Theme.primary.opacity(0.06), radius: 14, y: 4)
-    }
-
-    private var gaugeCaption: String {
+    private var statusLine: String {
         if count <= 0 {
             return "Sold out for the week — check back Tuesday at 11:00 AM."
         }
         if level < 0.25 {
             return "Running low — order soon if you can."
         }
+        if level < 0.5 {
+            return "Going fast — still a solid amount left this week."
+        }
         return "Plenty of smash burgers left this week."
+    }
+
+    private var accessibilitySummary: String {
+        "\(count) patties remaining this week. \(statusLine)"
+    }
+
+    private var panelBackground: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(Theme.surface)
+            .shadow(color: Theme.primary.opacity(0.05), radius: 10, y: 3)
     }
 }
 
-#Preview {
+#Preview("Healthy") {
     PattyFuelGaugeView(
         compact: false,
         count: 168,
         capacity: 240,
         canOrder: true,
+        onOrder: {}
+    )
+    .padding()
+    .background(Theme.background)
+}
+
+#Preview("Low") {
+    PattyFuelGaugeView(
+        compact: false,
+        count: 28,
+        capacity: 240,
+        canOrder: true,
+        onOrder: {}
+    )
+    .padding()
+    .background(Theme.background)
+}
+
+#Preview("Sold out") {
+    PattyFuelGaugeView(
+        compact: false,
+        count: 0,
+        capacity: 240,
+        canOrder: false,
         onOrder: {}
     )
     .padding()
