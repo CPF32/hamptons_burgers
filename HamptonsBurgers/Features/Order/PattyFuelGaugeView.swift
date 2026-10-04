@@ -4,6 +4,7 @@ struct PattyFuelGaugeView: View {
     var compact: Bool = false
     let count: Int
     let capacity: Int
+    var isSoldOutForWeek: Bool = false
     var canOrder: Bool = true
     var onOrder: (() -> Void)? = nil
 
@@ -53,7 +54,7 @@ struct PattyFuelGaugeView: View {
     /// Editorial inventory board — remaining count first; capacity only drives the bar.
     private var inventoryReadout: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Weekly inventory")
+            Text("Daily inventory")
                 .font(.caption.weight(.bold))
                 .tracking(1.0)
                 .textCase(.uppercase)
@@ -115,20 +116,23 @@ struct PattyFuelGaugeView: View {
     }
 
     private var statusLine: String {
+        if isSoldOutForWeek {
+            return StoreStatus.soldOutForWeekMessage
+        }
         if count <= 0 {
-            return "Sold out for the week — check back Tuesday at 11:00 AM."
+            return StoreStatus.soldOutForDayMessage()
         }
         if level < 0.25 {
             return "Running low — order soon if you can."
         }
         if level < 0.5 {
-            return "Going fast — still a solid amount left this week."
+            return "Going fast — still a solid amount left today."
         }
-        return "Plenty of smash burgers left this week."
+        return "Plenty of smash burgers left today."
     }
 
     private var accessibilitySummary: String {
-        "\(count) patties remaining this week. \(statusLine)"
+        "\(count) patties remaining today. \(statusLine)"
     }
 
     private var panelBackground: some View {
@@ -141,8 +145,8 @@ struct PattyFuelGaugeView: View {
 #Preview("Healthy") {
     PattyFuelGaugeView(
         compact: false,
-        count: 168,
-        capacity: 240,
+        count: 140,
+        capacity: 200,
         canOrder: true,
         onOrder: {}
     )
@@ -153,8 +157,8 @@ struct PattyFuelGaugeView: View {
 #Preview("Low") {
     PattyFuelGaugeView(
         compact: false,
-        count: 28,
-        capacity: 240,
+        count: 24,
+        capacity: 200,
         canOrder: true,
         onOrder: {}
     )
@@ -166,7 +170,7 @@ struct PattyFuelGaugeView: View {
     PattyFuelGaugeView(
         compact: false,
         count: 0,
-        capacity: 240,
+        capacity: 200,
         canOrder: false,
         onOrder: {}
     )

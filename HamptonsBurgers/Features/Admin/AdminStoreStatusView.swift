@@ -33,7 +33,7 @@ struct AdminStoreStatusView: View {
         .alert("Status published", isPresented: $showStatusSavedAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("Live store status, patty count, and notices are syncing to all guest devices.")
+            Text("Live store status, daily patty count, and notices are syncing to all guest devices.")
         }
         .onAppear {
             statusDraft = store.status
@@ -52,30 +52,32 @@ struct AdminStoreStatusSection: View {
     var body: some View {
         Section("Live store status") {
             Toggle("Off day (closed)", isOn: $status.isOffDay)
-            Toggle("Sold out", isOn: $status.isSoldOut)
-                .onChange(of: status.isSoldOut) { _, isSoldOut in
-                    if isSoldOut {
-                        status.pattyCount = 0
+
+            Toggle("Sold out for today", isOn: $status.isSoldOutForDay)
+                .onChange(of: status.isSoldOutForDay) { _, isSoldOutForDay in
+                    if isSoldOutForDay {
+                        status.dailyPattyCount = 0
                     } else {
-                        status.pattyCount = BrandConfig.defaultPattyCapacity
-                        status.pattyCapacity = BrandConfig.defaultPattyCapacity
+                        status.dailyPattyCount = status.dailyPattyCapacity
                     }
                 }
 
-            Stepper("Patties left: \(status.pattyCount)", value: $status.pattyCount, in: 0...max(status.pattyCapacity, 1))
-            Stepper("Weekly capacity: \(status.pattyCapacity)", value: $status.pattyCapacity, in: 1...1000)
-                .onChange(of: status.pattyCapacity) { _, newValue in
-                    status.pattyCount = min(status.pattyCount, newValue)
+            Toggle("Sold out for the week", isOn: $status.isSoldOutForWeek)
+
+            Stepper("Patties left today: \(status.dailyPattyCount)", value: $status.dailyPattyCount, in: 0...max(status.dailyPattyCapacity, 1))
+            Stepper("Daily capacity: \(status.dailyPattyCapacity)", value: $status.dailyPattyCapacity, in: 1...1000)
+                .onChange(of: status.dailyPattyCapacity) { _, newValue in
+                    status.dailyPattyCount = min(status.dailyPattyCount, newValue)
                 }
 
             HStack(spacing: 12) {
-                Button("-10") { status.pattyCount = max(0, status.pattyCount - 10) }
-                Button("-1") { status.pattyCount = max(0, status.pattyCount - 1) }
+                Button("-10") { status.dailyPattyCount = max(0, status.dailyPattyCount - 10) }
+                Button("-1") { status.dailyPattyCount = max(0, status.dailyPattyCount - 1) }
                 Button("+1") {
-                    status.pattyCount = min(status.pattyCapacity, status.pattyCount + 1)
+                    status.dailyPattyCount = min(status.dailyPattyCapacity, status.dailyPattyCount + 1)
                 }
                 Button("+10") {
-                    status.pattyCount = min(status.pattyCapacity, status.pattyCount + 10)
+                    status.dailyPattyCount = min(status.dailyPattyCapacity, status.dailyPattyCount + 10)
                 }
             }
             .buttonStyle(.bordered)

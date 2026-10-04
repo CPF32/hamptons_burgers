@@ -31,8 +31,9 @@ struct OrderView: View {
 
                         PattyFuelGaugeView(
                             compact: false,
-                            count: store.status.pattyCount,
-                            capacity: store.status.pattyCapacity,
+                            count: store.status.dailyPattyCount,
+                            capacity: store.status.dailyPattyCapacity,
+                            isSoldOutForWeek: store.status.isEffectivelySoldOutForWeek,
                             canOrder: canOrder,
                             onOrder: handleOrderTap
                         )

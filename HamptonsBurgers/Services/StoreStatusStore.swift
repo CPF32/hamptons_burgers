@@ -31,9 +31,10 @@ final class StoreStatusStore {
     func applyScreenshotDemo() {
         status = StoreStatus(
             isOffDay: false,
-            isSoldOut: false,
-            pattyCount: 168,
-            pattyCapacity: BrandConfig.defaultPattyCapacity,
+            isSoldOutForDay: false,
+            isSoldOutForWeek: false,
+            dailyPattyCount: 168,
+            dailyPattyCapacity: BrandConfig.defaultDailyPattyCapacity,
             noticeTitle: "",
             noticeBody: "",
             orderClosedMessage: "",
@@ -97,11 +98,11 @@ final class StoreStatusStore {
     }
 
     @MainActor
-    func adjustPattyCount(by delta: Int) async {
+    func adjustDailyPattyCount(by delta: Int) async {
         var next = status
-        next.pattyCount = max(0, min(next.pattyCapacity, next.pattyCount + delta))
-        if next.pattyCount == 0 {
-            next.isSoldOut = true
+        next.dailyPattyCount = max(0, min(next.dailyPattyCapacity, next.dailyPattyCount + delta))
+        if next.dailyPattyCount == 0 {
+            next.isSoldOutForDay = true
         }
         await save(next)
     }

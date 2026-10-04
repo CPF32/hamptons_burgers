@@ -2,9 +2,10 @@ import Foundation
 
 struct StoreStatus: Codable, Equatable {
     var isOffDay: Bool
-    var isSoldOut: Bool
-    var pattyCount: Int
-    var pattyCapacity: Int
+    var isSoldOutForDay: Bool
+    var isSoldOutForWeek: Bool
+    var dailyPattyCount: Int
+    var dailyPattyCapacity: Int
     var noticeTitle: String
     var noticeBody: String
     var orderClosedMessage: String
@@ -12,29 +13,43 @@ struct StoreStatus: Codable, Equatable {
 
     static let `default` = StoreStatus(
         isOffDay: false,
-        isSoldOut: false,
-        pattyCount: BrandConfig.defaultPattyCapacity,
-        pattyCapacity: BrandConfig.defaultPattyCapacity,
+        isSoldOutForDay: false,
+        isSoldOutForWeek: false,
+        dailyPattyCount: BrandConfig.defaultDailyPattyCapacity,
+        dailyPattyCapacity: BrandConfig.defaultDailyPattyCapacity,
         noticeTitle: "",
         noticeBody: "",
         orderClosedMessage: "",
         updatedAt: Date()
     )
 
-    /// Shown when sold out or patty count hits zero — always Tuesday (start of the week).
-    static let soldOutMessage = "Sorry, we've sold out for the week. Check back Tuesday at 11:00 AM."
+    /// Shown when sold out for the whole week — always Tuesday (start of the week).
+    static let soldOutForWeekMessage = "Sorry, we've sold out for the week. Check back Tuesday at 11:00 AM."
+
+    /// Shown when sold out for just today — points to the next day we're open.
+    static func soldOutForDayMessage(at date: Date = Date()) -> String {
+        "Sorry, we've sold out for today. Check back \(OperatingHours.formattedNextOpeningAfterToday(after: date))."
+    }
 
     static func offDayMessage(at date: Date = Date()) -> String {
         "Sorry, we're closed today. Check back \(OperatingHours.formattedNextOpeningAfterToday(after: date))."
     }
 
+    var isEffectivelySoldOutForDay: Bool {
+        isSoldOutForDay || dailyPattyCount <= 0
+    }
+
+    var isEffectivelySoldOutForWeek: Bool {
+        isSoldOutForWeek
+    }
+
     var isEffectivelySoldOut: Bool {
-        isSoldOut || pattyCount <= 0
+        isEffectivelySoldOutForWeek || isEffectivelySoldOutForDay
     }
 
     var fuelLevel: Double {
-        guard pattyCapacity > 0 else { return 0 }
-        return min(1, max(0, Double(pattyCount) / Double(pattyCapacity)))
+        guard dailyPattyCapacity > 0 else { return 0 }
+        return min(1, max(0, Double(dailyPattyCount) / Double(dailyPattyCapacity)))
     }
 
     var hasNotice: Bool {
@@ -47,14 +62,15 @@ struct StoreStatus: Codable, Equatable {
         return trimmed.isEmpty ? "Notice" : trimmed
     }
 
-    /// Off day, sold-out flag, or zero patties — drives the automatic status banner.
+    /// Off day, sold-out flags, or zero patties for the day — drives the automatic status banner.
     var showsStatusBanner: Bool {
         isOffDay || isEffectivelySoldOut
     }
 
     var statusBannerTitle: String {
         if isOffDay { return "Closed Today" }
-        return "Sold Out"
+        if isEffectivelySoldOutForWeek { return "Sold Out This Week" }
+        return "Sold Out Today"
     }
 
     func statusBannerMessage(at date: Date = Date()) -> String {
@@ -66,7 +82,10 @@ struct StoreStatus: Codable, Equatable {
         if isOffDay {
             return Self.offDayMessage(at: date)
         }
-        return Self.soldOutMessage
+        if isEffectivelySoldOutForWeek {
+            return Self.soldOutForWeekMessage
+        }
+        return Self.soldOutForDayMessage(at: date)
     }
 
     /// General announcements (events, hour changes) — shown in addition to the status banner when set.
@@ -91,7 +110,7 @@ struct StoreStatus: Codable, Equatable {
 
     /// Changes when status banner content should reappear after dismiss.
     var statusBannerToken: String {
-        "\(isOffDay)|\(isSoldOut)|\(pattyCount)|\(orderClosedMessage)|\(noticeBody)|\(updatedAt.timeIntervalSince1970)"
+        "\(isOffDay)|\(isSoldOutForDay)|\(isSoldOutForWeek)|\(dailyPattyCount)|\(orderClosedMessage)|\(noticeBody)|\(updatedAt.timeIntervalSince1970)"
     }
 
     var customerNoticeToken: String {
@@ -103,7 +122,8 @@ enum OrderAvailability {
     case open
     case outsideHours
     case offDay
-    case soldOut
+    case soldOutForDay
+    case soldOutForWeek
 
     var allowsOrdering: Bool {
         self == .open
@@ -114,7 +134,8 @@ extension StoreStatus {
     func availability(at date: Date = Date()) -> OrderAvailability {
         guard OperatingHours.isOpen(at: date) else { return .outsideHours }
         if isOffDay { return .offDay }
-        if isEffectivelySoldOut { return .soldOut }
+        if isEffectivelySoldOutForWeek { return .soldOutForWeek }
+        if isEffectivelySoldOutForDay { return .soldOutForDay }
         return .open
     }
 
@@ -134,13 +155,18 @@ extension StoreStatus {
             return ""
         case .outsideHours:
             return OperatingHours.closedOrderMessage(at: date)
-        case .offDay, .soldOut:
+        case .offDay:
             if !trimmedClosedMessage.isEmpty { return trimmedClosedMessage }
             if !trimmedNoticeBody.isEmpty { return trimmedNoticeBody }
-            if availability(at: date) == .soldOut {
-                return Self.soldOutMessage
-            }
             return Self.offDayMessage(at: date)
+        case .soldOutForWeek:
+            if !trimmedClosedMessage.isEmpty { return trimmedClosedMessage }
+            if !trimmedNoticeBody.isEmpty { return trimmedNoticeBody }
+            return Self.soldOutForWeekMessage
+        case .soldOutForDay:
+            if !trimmedClosedMessage.isEmpty { return trimmedClosedMessage }
+            if !trimmedNoticeBody.isEmpty { return trimmedNoticeBody }
+            return Self.soldOutForDayMessage(at: date)
         }
     }
 
@@ -156,7 +182,8 @@ extension StoreStatus {
         case .open: return ""
         case .outsideHours: return "We're Closed"
         case .offDay: return "Closed Today"
-        case .soldOut: return "Sold Out"
+        case .soldOutForWeek: return "Sold Out This Week"
+        case .soldOutForDay: return "Sold Out Today"
         }
     }
 }

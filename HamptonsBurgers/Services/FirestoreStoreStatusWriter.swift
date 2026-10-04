@@ -43,12 +43,21 @@ enum FirestoreStoreStatusWriter {
     }
 
     #if canImport(FirebaseFirestore)
+    /// Dual-writes the legacy weekly field names alongside the new daily ones so guests still
+    /// running the pre-daily-count build (awaiting App Store approval / not yet updated) keep
+    /// reading correct values from `pattyCount` / `pattyCapacity` / `isSoldOut`.
+    /// Safe to remove once all guests have updated to a build that only reads the new fields.
     private static func encode(_ status: StoreStatus) -> [String: Any] {
         [
             "isOffDay": status.isOffDay,
-            "isSoldOut": status.isSoldOut,
-            "pattyCount": status.pattyCount,
-            "pattyCapacity": status.pattyCapacity,
+            "isSoldOutForDay": status.isSoldOutForDay,
+            "isSoldOutForWeek": status.isSoldOutForWeek,
+            "dailyPattyCount": status.dailyPattyCount,
+            "dailyPattyCapacity": status.dailyPattyCapacity,
+            // Legacy mirrors for guests on the old build:
+            "pattyCount": status.dailyPattyCount,
+            "pattyCapacity": status.dailyPattyCapacity,
+            "isSoldOut": status.isSoldOutForDay || status.isSoldOutForWeek,
             "noticeTitle": status.noticeTitle,
             "noticeBody": status.noticeBody,
             "orderClosedMessage": status.orderClosedMessage,
@@ -57,12 +66,18 @@ enum FirestoreStoreStatusWriter {
         ]
     }
 
+    /// Reads the new daily fields first, falling back to the legacy weekly fields — covers the
+    /// case where the live document was last written by an admin still on the old build (merge
+    /// writes never touch fields that build doesn't know about, so the new fields would be
+    /// absent, not stale, right after such a write).
     private static func decode(_ data: [String: Any]) -> StoreStatus {
-        StoreStatus(
+        let legacySoldOut = data["isSoldOut"] as? Bool ?? false
+        return StoreStatus(
             isOffDay: data["isOffDay"] as? Bool ?? false,
-            isSoldOut: data["isSoldOut"] as? Bool ?? false,
-            pattyCount: data["pattyCount"] as? Int ?? StoreStatus.default.pattyCount,
-            pattyCapacity: data["pattyCapacity"] as? Int ?? StoreStatus.default.pattyCapacity,
+            isSoldOutForDay: data["isSoldOutForDay"] as? Bool ?? false,
+            isSoldOutForWeek: data["isSoldOutForWeek"] as? Bool ?? legacySoldOut,
+            dailyPattyCount: data["dailyPattyCount"] as? Int ?? data["pattyCount"] as? Int ?? StoreStatus.default.dailyPattyCount,
+            dailyPattyCapacity: data["dailyPattyCapacity"] as? Int ?? data["pattyCapacity"] as? Int ?? StoreStatus.default.dailyPattyCapacity,
             noticeTitle: data["noticeTitle"] as? String ?? "",
             noticeBody: data["noticeBody"] as? String ?? "",
             orderClosedMessage: data["orderClosedMessage"] as? String ?? "",
