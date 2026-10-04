@@ -70,7 +70,7 @@ enum BrandConfig {
     /// Must match your Firestore security rules for admin writes.
     static let firestoreAdminWriteSecret = "REPLACE-WITH-YOUR-ADMIN-WRITE-SECRET"
 
-    static let defaultPattyCapacity = 240  // weekly starting capacity for the fuel gauge
+    static let defaultDailyPattyCapacity = 200  // daily starting capacity for the fuel gauge
 
     // MARK: - Rewards + in-store payment
 
